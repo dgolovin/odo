@@ -19,9 +19,9 @@ type CatalogImage struct {
 }
 
 // List lists all the available component types
-func List(client *occlient.Client) ([]CatalogImage, error) {
+func List(client *occlient.Client, hidden bool) ([]CatalogImage, error) {
 
-	catalogList, err := getDefaultBuilderImages(client)
+	catalogList, err := getDefaultBuilderImages(client, hidden)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get image streams")
 	}
@@ -36,7 +36,7 @@ func List(client *occlient.Client) ([]CatalogImage, error) {
 // Search searches for the component
 func Search(client *occlient.Client, name string) ([]string, error) {
 	var result []string
-	componentList, err := List(client)
+	componentList, err := List(client, false)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to list components")
 	}
@@ -58,7 +58,7 @@ func Exists(client *occlient.Client, componentType string) (bool, error) {
 
 	s := log.Spinner("Checking component")
 	defer s.End(false)
-	catalogList, err := List(client)
+	catalogList, err := List(client, true)
 	if err != nil {
 		return false, errors.Wrapf(err, "unable to list catalog")
 	}
@@ -80,7 +80,7 @@ func VersionExists(client *occlient.Client, componentType string, componentVersi
 	defer s.End(false)
 
 	// Retrieve the catalogList
-	catalogList, err := List(client)
+	catalogList, err := List(client, true)
 	if err != nil {
 		return false, errors.Wrapf(err, "unable to list catalog")
 	}
@@ -107,7 +107,7 @@ func VersionExists(client *occlient.Client, componentType string, componentVersi
 
 // getDefaultBuilderImages returns the default builder images available in the
 // openshift and the current namespaces
-func getDefaultBuilderImages(client *occlient.Client) ([]CatalogImage, error) {
+func getDefaultBuilderImages(client *occlient.Client, hidden bool) ([]CatalogImage, error) {
 
 	var imageStreams []imagev1.ImageStream
 	currentNamespace := client.GetCurrentProjectName()
@@ -203,7 +203,7 @@ func getDefaultBuilderImages(client *occlient.Client) ([]CatalogImage, error) {
 				if _, ok := imageStreamTag.Annotations["tags"]; ok {
 					for _, t := range strings.Split(imageStreamTag.Annotations["tags"], ",") {
 						// If the tagReference has "builder" then we will add the image to the list
-						if t == "hidden" {
+						if t == "hidden" && !hidden {
 							glog.V(5).Infof("Tag: %v of builder: %v is marked as hidden and therefore will be excluded", tag, imageStream.Name)
 							hiddenTags = append(hiddenTags, tag)
 						}

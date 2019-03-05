@@ -5,6 +5,7 @@ import (
 	"github.com/redhat-developer/odo/pkg/catalog"
 	"github.com/redhat-developer/odo/pkg/odo/cli/catalog/util"
 	"github.com/redhat-developer/odo/pkg/odo/genericclioptions"
+	odoutil "github.com/redhat-developer/odo/pkg/odo/util"
 	"github.com/spf13/cobra"
 	"os"
 	"strings"
@@ -22,6 +23,7 @@ type ListComponentsOptions struct {
 	catalogList []catalog.CatalogImage
 	// generic context options common to all commands
 	*genericclioptions.Context
+	hidden bool
 }
 
 // NewListComponentsOptions creates a new ListComponentsOptions instance
@@ -32,7 +34,7 @@ func NewListComponentsOptions() *ListComponentsOptions {
 // Complete completes ListComponentsOptions after they've been created
 func (o *ListComponentsOptions) Complete(name string, cmd *cobra.Command, args []string) (err error) {
 	o.Context = genericclioptions.NewContext(cmd)
-	o.catalogList, err = catalog.List(o.Client)
+	o.catalogList, err = catalog.List(o.Client, o.hidden)
 	if err != nil {
 		return err
 	}
@@ -79,7 +81,7 @@ func (o *ListComponentsOptions) Run() (err error) {
 func NewCmdCatalogListComponents(name, fullName string) *cobra.Command {
 	o := NewListComponentsOptions()
 
-	return &cobra.Command{
+	componentsListCmd := &cobra.Command{
 		Use:     name,
 		Short:   "List all components available.",
 		Long:    "List all available component types from OpenShift's Image Builder.",
@@ -89,4 +91,7 @@ func NewCmdCatalogListComponents(name, fullName string) *cobra.Command {
 		},
 	}
 
+	componentsListCmd.SetUsageTemplate(odoutil.CmdUsageTemplate)
+    componentsListCmd.Flags().BoolVar(&o.hidden, "hidden", false, "If true, turn off hidden components filtering")
+    return componentsListCmd;
 }

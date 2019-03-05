@@ -263,7 +263,7 @@ var StorageUnMountCompletionHandler = func(cmd *cobra.Command, args parsedArgs, 
 // CreateCompletionHandler provides component type completion in odo create command
 var CreateCompletionHandler = func(cmd *cobra.Command, args parsedArgs, context *genericclioptions.Context) (completions []string) {
 	completions = make([]string, 0)
-	catalogList, err := catalog.List(context.Client)
+	catalogList, err := catalog.List(context.Client, true)
 	if err != nil {
 		return completions
 	}

@@ -218,7 +218,7 @@ func (co *CreateOptions) Complete(name string, cmd *cobra.Command, args []string
 	if co.interactive {
 		client := co.Client
 
-		componentTypeCandidates, err := catalog.List(client)
+		componentTypeCandidates, err := catalog.List(client, true)
 		if err != nil {
 			return err
 		}
